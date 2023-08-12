@@ -12,3 +12,40 @@
 }
 
 /* Write your CSS here */
+
+.categories-container {
+  list-style-type: none;
+  padding: 0;
+}
+
+.category-btn {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  margin: 10px 5px;
+}
+
+.rating-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.rating-btn {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  margin: 10px 5px;
+}
+
+.rating-img {
+  width: 100px;
+}
+
+.clear-btn {
+  background-color: #ffffff;
+  color: #0967d2;
+  border: 1px solid #0967d2;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+}

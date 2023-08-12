@@ -65,11 +65,23 @@ const ratingsList = [
   },
 ]
 
+const apiStatusConstants = {
+  initial: 'INITIAL',
+  success: 'SUCCESS',
+  inProgress: 'IN_PROGRESS',
+  failure: 'FAILURE',
+  noProducts: 'NO_PRODUCTS',
+}
+
 class AllProductsSection extends Component {
   state = {
     productsList: [],
-    isLoading: false,
+    // isLoading: false,
     activeOptionId: sortbyOptions[0].optionId,
+    activeRatingId: '',
+    activeCategoryId: '',
+    searchInput: '',
+    apiStatus: apiStatusConstants.initial,
   }
 
   componentDidMount() {
@@ -78,14 +90,22 @@ class AllProductsSection extends Component {
 
   getProducts = async () => {
     this.setState({
-      isLoading: true,
+      //   isLoading: true,
+      apiStatus: apiStatusConstants.inProgress,
     })
     const jwtToken = Cookies.get('jwt_token')
 
     // TODO: Update the code to get products with filters applied
 
-    const {activeOptionId} = this.state
-    const apiUrl = `https://apis.ccbp.in/products?sort_by=${activeOptionId}`
+    const {
+      activeOptionId,
+      activeRatingId,
+      activeCategoryId,
+      searchInput,
+    } = this.state
+
+    const apiUrl = `https://apis.ccbp.in/products?sort_by=${activeOptionId}&category=${activeCategoryId}&title_search=${searchInput}&rating=${activeRatingId}`
+    console.log(apiUrl)
     const options = {
       headers: {
         Authorization: `Bearer ${jwtToken}`,
@@ -105,7 +125,12 @@ class AllProductsSection extends Component {
       }))
       this.setState({
         productsList: updatedData,
-        isLoading: false,
+        // isLoading: false,
+        apiStatus: apiStatusConstants.success,
+      })
+    } else {
+      this.setState({
+        apiStatus: apiStatusConstants.failure,
       })
     }
   }
@@ -116,6 +141,16 @@ class AllProductsSection extends Component {
 
   renderProductsList = () => {
     const {productsList, activeOptionId} = this.state
+    if (productsList.length === 0) {
+      return (
+        <div>
+          <img
+            src="https://assets.ccbp.in/frontend/react-js/nxt-trendz/nxt-trendz-no-products-view.png"
+            alt="no products"
+          />
+        </div>
+      )
+    }
 
     // TODO: Add No Products View
     return (
@@ -134,6 +169,30 @@ class AllProductsSection extends Component {
     )
   }
 
+  filterRatingId = ratingId => {
+    this.setState({activeRatingId: ratingId}, this.getProducts)
+  }
+
+  filterCategoryId = categoryId => {
+    this.setState({activeCategoryId: categoryId}, this.getProducts)
+  }
+
+  clearFilter = () => {
+    this.setState(
+      {
+        activeOptionId: sortbyOptions[0].optionId,
+        activeCategoryId: '',
+        activeRatingId: '',
+        searchInput: '',
+      },
+      this.getProducts,
+    )
+  }
+
+  changeSearchInput = input => {
+    this.setState({searchInput: input}, this.getProducts)
+  }
+
   renderLoader = () => (
     <div className="products-loader-container">
       <Loader type="ThreeDots" color="#0b69ff" height="50" width="50" />
@@ -142,15 +201,48 @@ class AllProductsSection extends Component {
 
   // TODO: Add failure view
 
+  renderFailure = () => (
+    <div>
+      <img
+        src="https://assets.ccbp.in/frontend/react-js/nxt-trendz/nxt-trendz-products-error-view.png"
+        alt="products failure"
+      />
+    </div>
+  )
+
+  renderProductsSwitch = () => {
+    const {apiStatus} = this.state
+
+    switch (apiStatus) {
+      case apiStatusConstants.initial:
+        return this.renderProductsList()
+      case apiStatusConstants.success:
+        return this.renderProductsList()
+      case apiStatusConstants.inProgress:
+        return this.renderLoader()
+      case apiStatusConstants.failure:
+        return this.renderFailure()
+      default:
+        return null
+    }
+  }
+
   render() {
-    const {isLoading} = this.state
+    // const {isLoading} = this.state
 
     return (
       <div className="all-products-section">
         {/* TODO: Update the below element */}
-        <FiltersGroup />
+        <FiltersGroup
+          categoryOptions={categoryOptions}
+          ratingsList={ratingsList}
+          filterRatingId={this.filterRatingId}
+          filterCategoryId={this.filterCategoryId}
+          clearFilter={this.clearFilter}
+          changeSearchInput={this.changeSearchInput}
+        />
 
-        {isLoading ? this.renderLoader() : this.renderProductsList()}
+        {this.renderProductsSwitch()}
       </div>
     )
   }
